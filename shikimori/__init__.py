@@ -1,0 +1,1 @@
+from shikimori.graphql_client import GraphQLClient

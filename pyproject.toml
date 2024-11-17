@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "shikimori-ml"
+version = "0.1.0"
+description = "Pet project: ml algorithms based on shikimori data."
+authors = ["kdduha <just.andrew.kd@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-dotenv = "^1.0.1"
+gql = "^3.5.0"
+aiohttp = "^3.11.2"
+httpx = "^0.27.2"
+black = "^24.10.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,5 @@
+# cache files
+.DS_Store
+
+# env files
+.env
