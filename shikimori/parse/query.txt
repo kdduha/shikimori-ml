@@ -1,0 +1,32 @@
+query {
+  animes(page: 1, limit: 50, order: ranked) {
+    id
+    name
+    score
+    rating
+    episodes
+    episodesAired
+    duration
+    genres {
+      id
+      name
+    }
+    season
+    airedOn {
+      year
+      month
+      day
+    }
+    releasedOn {
+      year
+      month
+      day
+    }
+    status
+    studios {
+      id
+      name
+    }
+    isCensored
+  }
+}

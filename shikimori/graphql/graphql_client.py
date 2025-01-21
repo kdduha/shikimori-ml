@@ -1,4 +1,7 @@
 import httpx
+import logging
+import time
+import threading
 
 from requests import Response
 from gql import Client, gql
@@ -25,7 +28,7 @@ class GraphQLClient:
         The initialized GraphQL client, or None if not initialized.
     """
 
-    def __init__(self, url) -> None:
+    def __init__(self, logger: logging.Logger, url: str) -> None:
         """
         Initialize the GraphQLClient.
 
@@ -34,6 +37,7 @@ class GraphQLClient:
         url : str
             The base URL of the GraphQL API.
         """
+        self.logger = logger
         self.url = url
 
         self.client: Client | None = None
@@ -138,10 +142,13 @@ class GraphQLClient:
         self.client = Client(transport=transport, fetch_schema_from_transport=True)
 
     def execute(
-        self, query: str, variables: dict[str, Any] | None = None
-    ) -> dict[str, Any] | ExecutionResult:
+            self,
+            query: str,
+            variables: dict[str, Any] | None = None,
+            max_pages: int = 10
+    ) -> list[Any] | ExecutionResult:
         """
-        Execute a GraphQL query.
+        Execute a GraphQL query, paginating through the results if necessary.
 
         Parameters
         ----------
@@ -149,14 +156,52 @@ class GraphQLClient:
             The GraphQL query string.
         variables : dict[str, Any], optional
             A dictionary of variables for the query, by default None.
+        max_pages : int
+            The maximum number of pages to fetch (default is 10).
 
         Returns
         -------
         dict[str, Any] or ExecutionResult
             The result of the query execution.
         """
-        query_obj = gql(query)
-        return self.client.execute(query_obj, variable_values=variables)
+        if variables is None:
+            variables = dict()
+
+        all_results = []
+        stop_event = threading.Event()
+        log_thread = threading.Thread(target=self._log_parsing(stop_event), daemon=True)
+        log_thread.start()
+
+        start_time = time.time()
+
+        for page in range(1, max_pages + 1):
+            variables['page'] = page
+
+            try:
+                query_obj = gql(query)
+                result = self.client.execute(query_obj, variable_values=variables)
+
+                if result:
+                    for key, value in result.items():
+                        if isinstance(value, list):
+                            all_results.extend(value)
+                        else:
+                            self.logger.warning(f"Unexpected structure for key '{key}', skipping.")
+                else:
+                    self.logger.warning(f"No data received for page {page}.")
+
+                if not result or not any(isinstance(value, list) for value in result.values()):
+                    self.logger.info(f"No more data found, stopping at page {page}.")
+                    break
+
+                self.logger.info(f"Page {page} fetched successfully.")
+
+            except Exception as e:
+                self.logger.error(f"Error while fetching page {page}: {e}")
+                break
+
+        self.logger.info(f"Execution completed in {time.time() - start_time:.2f} seconds")
+        return all_results
 
     def _get_auth_params(self, auth_code: str) -> Dict[str, str]:
         auth_params: Dict[str, str] = self._token_auth_params
@@ -180,3 +225,9 @@ class GraphQLClient:
         headers["Authorization"] = f"Bearer {token}"
 
         return AIOHTTPTransport(url=self.url, headers=headers)
+
+    def _log_parsing(self, stop_event: threading.Event):
+        while stop_event.is_set():
+            self.logger.info("Execution is in progress...")
+            time.sleep(1)
+

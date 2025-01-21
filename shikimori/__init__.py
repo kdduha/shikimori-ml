@@ -1,1 +1,1 @@
-from shikimori.graphql_client import GraphQLClient
+from .logger import create_logger
