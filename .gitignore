@@ -1,5 +1,7 @@
 # cache files
-.DS_Store
+**.DS_Store
+**/__pycache__/
+
 
 # env files
 .env
