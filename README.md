@@ -18,6 +18,7 @@ In order to parse data from Shikimori with default configuration, you need:
 - Get your access_token by this [guide](https://shikimori.one/oauth?oauth_application_id=15&authorization_code=32yz1tIvXUoxxbFBai_IsF9-QHb4aTXE-fYrrUu9MgE#step_2) and write in [`.env`](.env) file
 - Replace [GraphQL query request](shikimori/parse/query.txt) with your one. You can test your query firstly in [shikimori playground](https://shikimori.one/api/doc/graphql)
 - Use this command and check the result in [`response.json`](shikimori/parse/response.json)
+
    ```sh
     python3 -m shikimori.parse.parse
     ```
