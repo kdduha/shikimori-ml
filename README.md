@@ -14,9 +14,11 @@ pet-project with [shikimori](https://shikimori.one/) data
 ## Parse Data
 Parsing works with GraphQL API and OAuth2. You can find parsing script [here](shikimori/parse/parse.py) and [shikimori](shikimori/graphql/graphql_client.py) API client here.
 In order to parse data from Shikimori with default configuration, you need:
-0. Get your access_token by this [guide](https://shikimori.one/oauth?oauth_application_id=15&authorization_code=32yz1tIvXUoxxbFBai_IsF9-QHb4aTXE-fYrrUu9MgE#step_2) and write in [`.env`](.env) file
-1. Replace [GraphQL query request](shikimori/parse/query.txt) with your one. You can test your query firstly in [shikimori playground](https://shikimori.one/api/doc/graphql)
-2. Use this command and check the result in [`response.json`](shikimori/parse/response.json)
+
+- Get your access_token by this [guide](https://shikimori.one/oauth?oauth_application_id=15&authorization_code=32yz1tIvXUoxxbFBai_IsF9-QHb4aTXE-fYrrUu9MgE#step_2) and write in [`.env`](.env) file
+- Replace [GraphQL query request](shikimori/parse/query.txt) with your one. You can test your query firstly in [shikimori playground](https://shikimori.one/api/doc/graphql)
+- Use this command and check the result in [`response.json`](shikimori/parse/response.json)
+
    ```sh
     python3 -m shikimori.parse.parse
     ```
