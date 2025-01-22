@@ -13,20 +13,56 @@ def _parse_args() -> argparse.Namespace:
     load_dotenv()
 
     parser = argparse.ArgumentParser(description="Shikimori GraphQL CLI client.")
-    parser.add_argument("--auth_code", help="Authorization code for initial access token generation.",
-                        default=os.getenv("SHIKI_AUTH_CODE"))
-    parser.add_argument("--access_token", help="Access token for API access.", default=os.getenv("SHIKI_ACCESS_TOKEN"))
-    parser.add_argument("--refresh_token", help="Refresh token for obtaining a new access token.",
-                        default=os.getenv("SHIKI_REFRESH_TOKEN"))
-    parser.add_argument("--endpoint", help="GraphQL endpoint URL.", default=os.getenv("SHIKI_GRAPHQL_ENDPOINT"))
-    parser.add_argument("--refresh_if_expired", action="store_true", help="Automatically refresh token if expired.")
+
+    parser.add_argument(
+        "--auth_code",
+        help="Authorization code for initial access token generation. By default trying to get from .env file",
+        default=os.getenv("SHIKI_AUTH_CODE")
+    )
+    parser.add_argument(
+        "--access_token",
+        help="Access token for API access. By default trying to get from .env file",
+        type=str,
+        default=os.getenv("SHIKI_ACCESS_TOKEN")
+    )
+    parser.add_argument(
+        "--refresh_token",
+        help="Refresh token for obtaining a new access token. By default trying to get from .env file",
+        type=str,
+        default=os.getenv("SHIKI_REFRESH_TOKEN")
+    )
+    parser.add_argument(
+        "--endpoint",
+        help="GraphQL endpoint URL. By default trying to get from .env file",
+        type=str,
+        default=os.getenv("SHIKI_GRAPHQL_ENDPOINT")
+    )
+    parser.add_argument(
+        "--refresh_if_expired",
+        action="store_true",
+        help="Set this flag to automatically refresh token if expired."
+    )
 
     project_root = Path(__file__).resolve().parent.parent
     query_file_path = project_root / "parse" / "query.txt"
     response_file_path = project_root / "parse" / "response.json"
 
-    parser.add_argument("--query_file", help="Path to the file containing the GraphQL query.", default=query_file_path)
-    parser.add_argument("--response_file", help="Path to the file containing the response.",  default=response_file_path)
+    parser.add_argument(
+        "--query_file",
+        help="Path to the file containing the GraphQL query. By default is shikiromir/parse/query.txt",
+        default=query_file_path
+    )
+    parser.add_argument(
+        "--response_file",
+        help="Path to the file containing the response. By default is shikimori/parse/response.json",
+        default=response_file_path
+    )
+    parser.add_argument(
+        "--max-pages",
+        help="Max number of pages to be parsed. Each page limit is about 50 entities. By default is int(10_000/50)",
+        type=int,
+        default=int(10_000/50),
+    )
 
     return parser.parse_args()
 
@@ -76,9 +112,9 @@ def _init_client(logger: logging.Logger, args: argparse.Namespace) -> GraphQLCli
 
 
 def _load_query_json(logger: logging.Logger, file_path: str) -> str:
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(file_path, "r", encoding="utf-8") as f:
         logger.info("Query is loaded!")
-        return file.read()
+        return f.read()
 
 
 if __name__ == "__main__":
@@ -88,7 +124,7 @@ if __name__ == "__main__":
     client = _init_client(logger, args)
     query = _load_query_json(logger, args.query_file)
 
-    response = client.execute(query, max_pages=int(10_000 / 50))
+    response = client.execute(query, max_pages=args.max_pages)
     logger.info(f"You have parsed {len(response)} entities.")
 
     if args.response_file:
@@ -96,3 +132,4 @@ if __name__ == "__main__":
             json.dump(response, file, indent=4)
     else:
         print(json.dumps(response, indent=4))
+

@@ -5,3 +5,6 @@
 
 # env files
 .env
+
+# dont push parsing data
+shikimori/parse/response.json
