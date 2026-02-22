@@ -20,38 +20,37 @@ You can fine usage examples with CLI or package API [here](./examples).
 ## Setup
 
 1. Copy your access token into `.env` following [this guide](https://shikimori.one/oauth?oauth_application_id=15&authorization_code=32yz1tIvXUoxxbFBai_IsF9-QHb4aTXE-fYrrUu9MgE#step_2) (see. [`.env.example`](./.env.example))
-1. Install project CLI in editable mode:
+1. Install project CLI:
 
     ```sh
     uv pip install -e .
     export PATH="$PWD/.venv/bin:$PATH"
     ```
-1. Prepare your GraphQL queries in `input/` (`.gql` files). You can test them first in the [Shikimori GraphQL Playground](https://shikimori.io/api/doc/graphql)
+1. Prepare your GraphQL queries in `input/` dir (`.gql` files). You can test them first in the [Shikimori GraphQL Playground](https://shikimori.io/api/doc/graphql)
 1. Run CLI:
     ```sh
     shiki-parse --help
-
-    usage: shiki-parse [-h] [--auth_code AUTH_CODE] [--access_token ACCESS_TOKEN] [--refresh_token REFRESH_TOKEN] [--endpoint ENDPOINT] [--refresh_if_expired] [--output-format {json,csv}] [--input-dir INPUT_DIR] [--output-dir OUTPUT_DIR]
-                    [--max-pages MAX_PAGES]
+    
+    usage: shiki-parse [-h] [--auth_code AUTH_CODE] [--access_token ACCESS_TOKEN] [--refresh_token REFRESH_TOKEN] [--endpoint ENDPOINT] [--refresh_if_expired] [--output-format {json,csv}] [--input INPUT] [--output OUTPUT]
+                      [--max-pages MAX_PAGES] [--timeout TIMEOUT]
 
     Shikimori GraphQL CLI client.
 
     options:
-    -h, --help            show this help message and exit
-    --auth_code AUTH_CODE
+      -h, --help            show this help message and exit
+      --auth_code AUTH_CODE
                             Authorization code for initial access token generation. By default trying to get from .env file SHIKI_AUTH_CODE
-    --access_token ACCESS_TOKEN
+      --access_token ACCESS_TOKEN
                             Access token for API access. By default trying to get from .env file SHIKI_ACCESS_TOKEN
-    --refresh_token REFRESH_TOKEN
+      --refresh_token REFRESH_TOKEN
                             Refresh token for obtaining a new access token. By default trying to get from .env file SHIKI_REFRESH_TOKEN
-    --endpoint ENDPOINT   Shikimori base endpoint. By default trying to get from .env file SHIKI_BASE_HOST
-    --refresh_if_expired  Set this flag to automatically refresh token if expired.
-    --output-format {json,csv}
+      --endpoint ENDPOINT   Shikimori base endpoint. By default trying to get from .env file SHIKI_BASE_HOST
+      --refresh_if_expired  Set this flag to automatically refresh token if expired.
+      --output-format {json,csv}
                             Choose output parsed data format
-    --input-dir INPUT_DIR
-                            Path to the dir with GraphQL queries (files with `.gql` extension). By default is `./input`
-    --output-dir OUTPUT_DIR
-                            Path to the output with parsed results. By default is `./output`
-    --max-pages MAX_PAGES
+      --input INPUT         Path to a GraphQL query file (.gql) or a directory with queries. By default is `./input`
+      --output OUTPUT       Path to the output with parsed results. By default is `./output`
+      --max-pages MAX_PAGES
                             Max number of pages to be parsed. Each page limit is about 50 entities. By default is 1
+      --timeout TIMEOUT     Timeout between GraphQL requests.
     ```

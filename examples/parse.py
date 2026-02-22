@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 from pathlib import Path
@@ -8,20 +9,26 @@ from shikimori_parse.client import GraphQLClient
 from shikimori_parse.logger import create_logger
 from shikimori_parse.utils import save_json
 
+USERS_PER_PAGE = 50
+SHIKI_TIMEOUT = 1.5
+SHIKI_URL = "https://shikimori.io"
+SHIKI_ACCESS_TOKEN_ENV = "SHIKI_ACCESS_TOKEN"
+
 
 def init_client() -> GraphQLClient:
-    client = GraphQLClient(url="https://shikimori.io")
-    client.init(os.getenv("SHIKI_ACCESS_TOKEN"))
+    client = GraphQLClient(url=SHIKI_URL, timeout=SHIKI_TIMEOUT)
+    client.init(os.getenv(SHIKI_ACCESS_TOKEN_ENV))
     return client
 
 
 def parse_users(
-    client: GraphQLClient, query_path: Path, n_random_pages: int, max_random_page: int
+    client: GraphQLClient, query_path: Path, n_users: int, max_random_page: int
 ) -> list[str]:
     query = query_path.read_text()
     user_ids: set[str] = set()
 
-    for _ in range(n_random_pages):
+    pages_needed = n_users // USERS_PER_PAGE
+    for _ in range(pages_needed):
         page = random.randint(1, max_random_page)
         result = client.execute(
             query,
@@ -46,11 +53,38 @@ def parse_user_rates(
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Shikimori user rates parser")
+
+    parser.add_argument(
+        "--users",
+        type=int,
+        required=True,
+        help="Approximate number of users to parse",
+    )
+    parser.add_argument(
+        "--max-rates-per-user",
+        type=int,
+        required=True,
+        help="Approximate number of anime rates per user",
+    )
+    parser.add_argument(
+        "--max-random-user-page",
+        type=int,
+        required=True,
+        help="Maximum random page for users pagination",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="Output directory",
+    )
+
+    args = parser.parse_args()
     load_dotenv()
     logger = create_logger()
 
-    OUTPUT = Path("result")
-    RATES_DIR = OUTPUT / "user_rates"
+    RATES_DIR = args.output / "user_rates"
     RATES_DIR.mkdir(parents=True, exist_ok=True)
 
     client = init_client()
@@ -60,17 +94,20 @@ if __name__ == "__main__":
 
     logger.info("Parsing user ids...")
     user_ids = parse_users(
-        client, users_query, n_random_pages=5, max_random_page=100
-    )  # max 5 * 50 == 250 users
+        client,
+        users_query,
+        n_users=args.users,
+        max_random_page=args.max_random_user_page,
+    )
     logger.info(f"Parsed {len(user_ids)} users")
 
-    all_csv = OUTPUT / "users_rates.csv"
+    all_csv = args.output / "users_rates.csv"
     for user_id in user_ids:
         logger.info("Parsing rates for user %s", user_id)
 
         data = parse_user_rates(
-            client, user_id, user_rate_query, max_pages=10
-        )  # max 10 * 50 == 500 rates per user
+            client, user_id, user_rate_query, max_pages=args.max_rates_per_user
+        )
         if not data:
             continue
 
@@ -87,5 +124,5 @@ if __name__ == "__main__":
             encoding="utf-8",
         )
 
-    logger.info("All user rates saved to %s", OUTPUT / "all_user_rates.csv")
+    logger.info("All user rates saved to %s", args.output / "user_rates.csv")
     RATES_DIR.rmdir()
