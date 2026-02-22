@@ -1,5 +1,5 @@
-query($userId: ID!) {
-  userRates(userId: $userId, status: completed, limit: 50, page: 1) {
+query($userId: ID!, $page: PositiveInt) {
+  userRates(userId: $userId, status: completed, limit: 50, page: $page) {
     id
     score
     episodes

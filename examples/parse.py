@@ -87,13 +87,10 @@ if __name__ == "__main__":
         help="Output directory",
     )
 
-    args = parser.parse_args()
     load_dotenv()
+
+    args = parser.parse_args()
     logger = create_logger()
-
-    RATES_DIR = args.output / "user_rates"
-    RATES_DIR.mkdir(parents=True, exist_ok=True)
-
     client = init_client()
 
     users_query = Path("queries/users.gql")
@@ -118,10 +115,6 @@ if __name__ == "__main__":
         if not data:
             continue
 
-        tmp_json = RATES_DIR / f"user_{user_id}.json"
-        save_json(tmp_json, data)
-        tmp_json.unlink()
-
         df = pd.DataFrame(data)
         df.to_csv(
             all_csv,
@@ -132,4 +125,3 @@ if __name__ == "__main__":
         )
 
     logger.info("All user rates saved to %s", args.output / "user_rates.csv")
-    RATES_DIR.rmdir()
