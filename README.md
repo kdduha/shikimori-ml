@@ -2,13 +2,13 @@
 
 <div id="stack badges">
   <a href="https://www.python.org/">
-    <img src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
+    <img src="https://img.shields.io/badge/-Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
   </a>
   <a href="https://pypi.org/project/gql/">
-    <img src="https://img.shields.io/badge/-gql-E535AB?style=flat-square&logo=graphql&logoColor=white" alt="gql"/>
+    <img src="https://img.shields.io/badge/-gql-E535AB?style=for-the-badge&logo=graphql&logoColor=white" alt="gql"/>
   </a>
   <a href="https://uv.io/">
-    <img src="https://img.shields.io/badge/-uv-F0DB4F?style=flat-square&logo=uv&logoColor=black" alt="uv"/>
+    <img src="https://img.shields.io/badge/-uv-F0DB4F?style=for-the-badge&logo=uv&logoColor=black" alt="uv"/>
   </a>
 </div>
 
