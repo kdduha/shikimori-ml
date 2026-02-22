@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
+
 from shikimori_parse.client import GraphQLClient
 from shikimori_parse.logger import create_logger
 from shikimori_parse.utils import save_json
@@ -13,11 +14,17 @@ USERS_PER_PAGE = 50
 SHIKI_TIMEOUT = 1.5
 SHIKI_URL = "https://shikimori.io"
 SHIKI_ACCESS_TOKEN_ENV = "SHIKI_ACCESS_TOKEN"
+SHIKI_CLIENT_ID_ENV = "SHIKI_CLIENT_ID"
+SHIKI_CLIENT_SECRET_ENV = "SHIKI_CLIENT_SECRET"
 
 
 def init_client() -> GraphQLClient:
     client = GraphQLClient(url=SHIKI_URL, timeout=SHIKI_TIMEOUT)
-    client.init(os.getenv(SHIKI_ACCESS_TOKEN_ENV))
+    client.init(
+        access_token=os.getenv(SHIKI_ACCESS_TOKEN_ENV),
+        client_id=os.getenv(SHIKI_CLIENT_ID_ENV),
+        client_secret=os.getenv(SHIKI_CLIENT_SECRET_ENV),
+    )
     return client
 
 

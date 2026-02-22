@@ -12,9 +12,24 @@ from shikimori_parse.utils import load_queries, save_csv, save_json
 
 def parse_args() -> argparse.Namespace:
     load_dotenv()
-
     parser = argparse.ArgumentParser(description="Shikimori GraphQL CLI client.")
 
+    parser.add_argument(
+        "--client_id",
+        help=(
+            "OAuth client ID. By default trying to get from .env file SHIKI_CLIENT_ID"
+        ),
+        type=str,
+        default=os.getenv("SHIKI_CLIENT_ID"),
+    )
+    parser.add_argument(
+        "--client_secret",
+        help=(
+            "OAuth client secret. By default trying to get from .env file SHIKI_CLIENT_SECRET"
+        ),
+        type=str,
+        default=os.getenv("SHIKI_CLIENT_SECRET"),
+    )
     parser.add_argument(
         "--auth_code",
         help="Authorization code for initial access token generation. By default trying to get from .env file SHIKI_AUTH_CODE",
@@ -70,19 +85,13 @@ def parse_args() -> argparse.Namespace:
         default=1,
     )
     parser.add_argument(
-        "--timeout",
-        help="Timeout between GraphQL requests.",
-        type=float,
-        default=1.0
+        "--timeout", help="Timeout between GraphQL requests.", type=float, default=1.0
     )
 
     return parser.parse_args()
 
 
 def init_client(logger: logging.Logger, args: argparse.Namespace) -> GraphQLClient:
-    if not args.endpoint:
-        raise ValueError("GraphQL endpoint is required")
-
     client = GraphQLClient(url=args.endpoint, timeout=args.timeout)
     access_token, refresh_token = args.access_token, args.refresh_token
 
@@ -102,14 +111,15 @@ def init_client(logger: logging.Logger, args: argparse.Namespace) -> GraphQLClie
     if not access_token:
         raise ValueError("Failed to obtain access token")
 
-    client.init(access_token)
+    client.init(
+        access_token, client_id=args.client_id, client_secret=args.client_secret
+    )
     logger.info("Init client successfuly")
     return client
 
 
 def main():
     logger = create_logger()
-
     args = parse_args()
     client = init_client(logger, args)
     queries = load_queries(args.input)

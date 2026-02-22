@@ -4,13 +4,8 @@ import httpx
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport, ExecutionResult
 from requests import Response
+
 from shikimori_parse.logger import create_logger
-
-
-class GraphQLAuthError(Exception):
-    """
-    An exception raised for errors related to authentication token methods.
-    """
 
 
 class GraphQLClient:
@@ -21,20 +16,17 @@ class GraphQLClient:
     def __init__(self, url: str, timeout: float = 1.0) -> None:
         self._logger = create_logger(component="GraphQLClient")
 
+        self._timeout = timeout
+        self._auth_url: str = f"{url}/oauth/token"
         self._graphql_url = f"{url}/api/graphql"
 
-        self._client: Client | None = None
-        self._timeout = timeout
-
-        # general client constants
-        self._auth_url: str = f"{url}/oauth/token"
+        # general client constants. See in more details shiki OAuth2 Guide::
+        # https://shikimori.one/oauth?oauth_application_id=15
         self._auth_headers: dict[str, str] = {
-            "User-Agent": "Api Test",
+            "User-Agent": "shikimori-parser",
         }
-        self._token_auth_params: dict[str, str] = {
-            "client_id": "bce7ad35b631293ff006be882496b29171792c8839b5094115268da7a97ca34c",
-            "client_secret": "811459eada36b14ff0cf0cc353f8162e72a7d6e6c7930b647a5c587d1beffe68",
-        }
+        self._token_auth_params: dict[str, str] | None = None
+        self._client: Client | None = None
 
     def get_access_token(self, auth_code: str) -> Response:
         """
@@ -55,12 +47,12 @@ class GraphQLClient:
                 )
 
                 if response.status_code != 200:
-                    raise GraphQLAuthError(f"Authorization failed: {response.text}")
+                    raise httpx.RequestError(f"Authorization failed: {response.text}")
 
                 return response
 
             except httpx.RequestError as e:
-                raise GraphQLAuthError(
+                raise httpx.RequestError(
                     f"An error occurred while requesting auth code: {e}"
                 )
 
@@ -83,16 +75,18 @@ class GraphQLClient:
                 )
 
                 if response.status_code != 200:
-                    raise GraphQLAuthError(f"Failed to refresh token: {response.text}")
+                    raise httpx.RequestError(
+                        f"Failed to refresh token: {response.text}"
+                    )
 
                 return response
 
             except httpx.RequestError as e:
-                raise GraphQLAuthError(
+                raise httpx.RequestError(
                     f"An error occurred while requesting refresh token: {e}"
                 )
 
-    def init(self, access_token: str) -> None:
+    def init(self, access_token: str, client_id: str, client_secret: id) -> None:
         """
         Initialize the GraphQL client with an authentication token.
 
@@ -100,9 +94,17 @@ class GraphQLClient:
         ----------
         access_token : str
             The authentication access token to authorize the client.
+        client_id: str
+            OAuth client id
+        client_secret: str
+            OAuth client secret
         """
         transport = self._get_transport(access_token)
         self._client = Client(transport=transport, fetch_schema_from_transport=True)
+        self._token_auth_params = {
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
 
     def execute(
         self, query: str, variables: dict[str, any] | None = None, max_pages: int = 10
@@ -114,7 +116,7 @@ class GraphQLClient:
         ----------
         query : str
             The GraphQL query string.
-        variables : dict[str, Any], optional
+        variables : dict[str, any], optional
             A dictionary of variables for the query, by default None.
         max_pages : int
             The maximum number of pages to fetch (default is 10).
@@ -140,7 +142,9 @@ class GraphQLClient:
                     if isinstance(value, list):
                         all_results.extend(value)
                     else:
-                        self._logger.warning(f"Unexpected structure for key '{key}', skipping.")
+                        self._logger.warning(
+                            f"Unexpected structure for key '{key}', skipping."
+                        )
 
                 if not result or not any(
                     isinstance(value, list) for value in result.values()
