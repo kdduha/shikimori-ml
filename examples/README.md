@@ -6,7 +6,7 @@ Here you can find examples, how to parse different shikimori entities via CLI or
     ```
 1. In order to parse anime (approximately 10k titles), run:
     ```sh
-    shiki-parse --input=./queries/anime.gql --output-format=csv --output=result/ --max-pages=200 --timeout=2
+    shiki-parse --input=./queries/anime.gql --output-format=csv --output=result/ --max-pages=200 --timeout=1.5
     ```
 1. In order to parse users rates (not more than 300k users rates), run:
     ```sh
