@@ -1,7 +1,9 @@
-query {
-  animes(page: 1, limit: 50, order: ranked) {
+query($page: PositiveInt) {
+  animes(page: $page, limit: 50, order: ranked) {
     id
     name
+    russian
+    description
     score
     rating
     episodes
@@ -9,7 +11,6 @@ query {
     duration
     genres {
       id
-      name
     }
     season
     airedOn {
@@ -24,7 +25,6 @@ query {
     }
     status
     studios {
-      id
       name
     }
     isCensored

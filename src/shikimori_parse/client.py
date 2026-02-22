@@ -1,13 +1,10 @@
-import httpx
-import logging
 import time
-import threading
 
-from requests import Response
+import httpx
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport, ExecutionResult
-
-from typing import Any, Dict
+from requests import Response
+from shikimori_parse.logger import create_logger
 
 
 class GraphQLAuthError(Exception):
@@ -19,35 +16,22 @@ class GraphQLAuthError(Exception):
 class GraphQLClient:
     """
     A client for interacting with a GraphQL API, supporting authentication and query execution.
-
-    Attributes
-    ----------
-    url : str
-        The base URL of the GraphQL API.
-    client : Client or None
-        The initialized GraphQL client, or None if not initialized.
     """
 
-    def __init__(self, logger: logging.Logger, url: str) -> None:
-        """
-        Initialize the GraphQLClient.
+    def __init__(self, url: str, timeout: float = 1.0) -> None:
+        self._logger = create_logger(component="GraphQLClient")
 
-        Parameters
-        ----------
-        url : str
-            The base URL of the GraphQL API.
-        """
-        self.logger = logger
-        self.url = url
+        self._graphql_url = f"{url}/api/graphql"
 
-        self.client: Client | None = None
+        self._client: Client | None = None
+        self._timeout = timeout
 
         # general client constants
-        self._auth_url: str = "https://shikimori.one/oauth/token"
-        self._auth_headers: Dict[str, str] = {
+        self._auth_url: str = f"{url}/oauth/token"
+        self._auth_headers: dict[str, str] = {
             "User-Agent": "Api Test",
         }
-        self._token_auth_params: Dict[str, str] = {
+        self._token_auth_params: dict[str, str] = {
             "client_id": "bce7ad35b631293ff006be882496b29171792c8839b5094115268da7a97ca34c",
             "client_secret": "811459eada36b14ff0cf0cc353f8162e72a7d6e6c7930b647a5c587d1beffe68",
         }
@@ -61,16 +45,6 @@ class GraphQLClient:
         ----------
         auth_code : str
             The authorization code obtained from the OAuth2 flow.
-
-        Returns
-        -------
-        Response
-            The HTTP response containing the authentication access token.
-
-        Raises
-        ------
-        GraphQLAuthError
-            If the authorization fails or a request error occurs.
         """
         with httpx.Client() as client:
             try:
@@ -99,16 +73,6 @@ class GraphQLClient:
         ----------
         refresh_token : str
             The refresh token used to obtain a new authentication token.
-
-        Returns
-        -------
-        Response
-            The HTTP response containing the refreshed authentication token.
-
-        Raises
-        ------
-        GraphQLAuthError
-            If refreshing the token fails or a request error occurs.
         """
         with httpx.Client() as client:
             try:
@@ -137,16 +101,12 @@ class GraphQLClient:
         access_token : str
             The authentication access token to authorize the client.
         """
-
         transport = self._get_transport(access_token)
-        self.client = Client(transport=transport, fetch_schema_from_transport=True)
+        self._client = Client(transport=transport, fetch_schema_from_transport=True)
 
     def execute(
-            self,
-            query: str,
-            variables: dict[str, Any] | None = None,
-            max_pages: int = 10
-    ) -> list[Any] | ExecutionResult:
+        self, query: str, variables: dict[str, any] | None = None, max_pages: int = 10
+    ) -> list[dict] | ExecutionResult:
         """
         Execute a GraphQL query, paginating through the results if necessary.
 
@@ -158,76 +118,61 @@ class GraphQLClient:
             A dictionary of variables for the query, by default None.
         max_pages : int
             The maximum number of pages to fetch (default is 10).
-
-        Returns
-        -------
-        dict[str, Any] or ExecutionResult
-            The result of the query execution.
         """
         if variables is None:
             variables = dict()
 
-        all_results = []
-        stop_event = threading.Event()
-        log_thread = threading.Thread(target=self._log_parsing(stop_event), daemon=True)
-        log_thread.start()
+        page_to_start: int | None = variables.get("page")
+        if page_to_start is None:
+            page_to_start = 1
 
         start_time = time.time()
+        all_results = []
 
-        for page in range(1, max_pages + 1):
-            variables['page'] = page
+        for page in range(page_to_start, page_to_start + max_pages):
+            # litle timeout sleep for a limiter
+            time.sleep(self._timeout)
 
+            variables["page"] = page
             try:
-                query_obj = gql(query)
-                result = self.client.execute(query_obj, variable_values=variables)
+                result = self._client.execute(gql(query), variable_values=variables)
+                for key, value in result.items():
+                    if isinstance(value, list):
+                        all_results.extend(value)
+                    else:
+                        self._logger.warning(f"Unexpected structure for key '{key}', skipping.")
 
-                if result:
-                    for key, value in result.items():
-                        if isinstance(value, list):
-                            all_results.extend(value)
-                        else:
-                            self.logger.warning(f"Unexpected structure for key '{key}', skipping.")
-                else:
-                    self.logger.warning(f"No data received for page {page}.")
-
-                if not result or not any(isinstance(value, list) for value in result.values()):
-                    self.logger.info(f"No more data found, stopping at page {page}.")
+                if not result or not any(
+                    isinstance(value, list) for value in result.values()
+                ):
+                    self._logger.info(f"No more data found, stopping at page {page}.")
                     break
 
-                self.logger.info(f"Page {page} fetched successfully.")
+                self._logger.info(f"Page {page} fetched successfully.")
 
             except Exception as e:
-                self.logger.error(f"Error while fetching page {page}: {e}")
-                break
+                self._logger.error(f"Error while fetching page {page}: {e}")
+                continue
 
-        self.logger.info(f"Execution completed in {time.time() - start_time:.2f} seconds")
+        self._logger.info(
+            f"Execution completed in {time.time() - start_time:.2f} seconds"
+        )
         return all_results
 
-    def _get_auth_params(self, auth_code: str) -> Dict[str, str]:
-        auth_params: Dict[str, str] = self._token_auth_params
-
+    def _get_auth_params(self, auth_code: str) -> dict[str, str]:
+        auth_params: dict[str, str] = self._token_auth_params
         auth_params["grant_type"] = "authorization_code"
         auth_params["code"] = auth_code
         auth_params["redirect_uri"] = "urn:ietf:wg:oauth:2.0:oob"
-
         return auth_params
 
-    def _get_refresh_params(self, refresh_token: str) -> Dict[str, str]:
-        refresh_params: Dict[str, str] = self._token_auth_params
-
+    def _get_refresh_params(self, refresh_token: str) -> dict[str, str]:
+        refresh_params: dict[str, str] = self._token_auth_params
         refresh_params["grant_type"] = "refresh_token"
         refresh_params["refresh_token"] = refresh_token
-
         return refresh_params
 
     def _get_transport(self, token: str) -> AIOHTTPTransport:
         headers = self._auth_headers
         headers["Authorization"] = f"Bearer {token}"
-
-        return AIOHTTPTransport(url=self.url, headers=headers)
-
-    def _log_parsing(self, stop_event: threading.Event):
-        while stop_event.is_set():
-            self.logger.info("Execution is in progress...")
-            time.sleep(1)
-
+        return AIOHTTPTransport(url=self._graphql_url, headers=headers, ssl=True)

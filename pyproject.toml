@@ -1,19 +1,35 @@
-[tool.poetry]
-name = "shikimori-ml"
-version = "0.1.0"
-description = "Pet project: ml algorithms based on shikimori data."
-authors = ["kdduha <just.andrew.kd@gmail.com>"]
+[project]
+name = "shikimori-parse"
+version = "1.0.0"
+description = "CLI tool to parse Shikimori data via GraphQL."
+authors = [{ name = "kdduha", email = "just.andrew.kd@gmail.com" }]
+requires-python = ">=3.10,<4"
 readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "python-dotenv>=1.0.1,<2",
+    "gql>=3.5.0,<4",
+    "aiohttp>=3.11.2,<4",
+    "httpx>=0.27.2,<0.28",
+    "black>=24.10.0,<25",
+    "requests>=2.32.5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-python-dotenv = "^1.0.1"
-gql = "^3.5.0"
-aiohttp = "^3.11.2"
-httpx = "^0.27.2"
-black = "^24.10.0"
-
+[project.scripts]
+shiki-parse = "shikimori_parse.cli:main"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.21,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pandas>=2.3.3",
+]
