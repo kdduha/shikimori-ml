@@ -15,7 +15,8 @@
 CLI tool to parse [Shikimori](https://shikimori.io/) data.
 Parsing works with GraphQL API and OAuth2. You can find parsing script [here](src/shikimori_parse/cli.py) and [shikimori](./src/shikimori_parse/client.py) API client here.
 
-You can fine usage examples with CLI or package API [here](./examples). 
+You can fine usage examples with CLI or package API [here](./examples). These scripts were used to form [Kaggle](https://www.kaggle.com/datasets/kdduha/shikimori-recsys) and 
+[HuggingFace](https://huggingface.co/datasets/kdduha/shikimori-recsys) shikimori-recsys datasets.
 
 ## Setup
 

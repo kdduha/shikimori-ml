@@ -1,6 +1,5 @@
 
-Here you can find examples, how to parse different shikimori entities via CLI or Python package API. 
-These scripts were used to form [Kaggle](https://www.kaggle.com/datasets/kdduha/shikimori-recsys) and [HuggingFace](https://huggingface.co/datasets/kdduha/shikimori-recsys) shikimori-recsys datasets.
+Here you can find examples, how to parse different shikimori entities via CLI or Python package API:
 1. In order to parse genres, run:
     ```sh
     shiki-parse --input=./queries/genres.gql --output-format=csv --output=result/
