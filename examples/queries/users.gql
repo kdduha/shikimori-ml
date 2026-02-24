@@ -1,5 +1,6 @@
 query($page: PositiveInt) {
   users(page: $page, limit: 50) {
     id
+    lastOnlineAt
   }
 }

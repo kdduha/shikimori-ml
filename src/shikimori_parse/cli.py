@@ -80,7 +80,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--max-pages",
-        help="Max number of pages to be parsed. Each page limit is about 50 entities. By default is 1",
+        help="Max number of pages to be parsed. Each page limit is about 50 entities. "
+        "Your query must support page PositiveInt param (check examples). By default is 1",
         type=int,
         default=1,
     )

@@ -107,7 +107,7 @@ class GraphQLClient:
         }
 
     def execute(
-        self, query: str, variables: dict[str, any] | None = None, max_pages: int = 10
+        self, query: str, variables: dict[str, any] | None = None, max_pages: int = 1
     ) -> list[dict] | ExecutionResult:
         """
         Execute a GraphQL query, paginating through the results if necessary.
@@ -119,7 +119,8 @@ class GraphQLClient:
         variables : dict[str, any], optional
             A dictionary of variables for the query, by default None.
         max_pages : int
-            The maximum number of pages to fetch (default is 10).
+            The maximum number of pages to fetch (default is 1).
+            Your query must support page PositiveInt param (check examples).
         """
         if variables is None:
             variables = dict()
@@ -146,9 +147,7 @@ class GraphQLClient:
                             f"Unexpected structure for key '{key}', skipping."
                         )
 
-                if not result or not any(
-                    isinstance(value, list) for value in result.values()
-                ):
+                if not result or all(not value for value in result.values()):
                     self._logger.info(f"No more data found, stopping at page {page}.")
                     break
 
