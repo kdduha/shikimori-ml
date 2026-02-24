@@ -1,0 +1,7 @@
+query {
+  genres(entryType: Anime) {
+    id
+    name
+    russian
+  }
+}

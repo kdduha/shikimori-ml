@@ -1,0 +1,32 @@
+query($page: PositiveInt) {
+  animes(page: $page, limit: 50, order: ranked) {
+    id
+    name
+    russian
+    description
+    score
+    rating
+    episodes
+    episodesAired
+    duration
+    genres {
+      id
+    }
+    season
+    airedOn {
+      year
+      month
+      day
+    }
+    releasedOn {
+      year
+      month
+      day
+    }
+    status
+    studios {
+      name
+    }
+    isCensored
+  }
+}

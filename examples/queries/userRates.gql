@@ -1,0 +1,13 @@
+query($userId: ID!, $page: PositiveInt) {
+  userRates(userId: $userId, status: completed, limit: 50, page: $page) {
+    id
+    score
+    episodes
+    rewatches
+    createdAt
+    updatedAt
+    anime {
+      id
+    }
+  }
+}

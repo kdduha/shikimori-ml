@@ -2,9 +2,11 @@
 **.DS_Store
 **/__pycache__/
 **.idea
+.venv
 
 # env files
 .env
 
 # dont push parsing data
-shikimori/parse/response.json
+output/
+examples/result

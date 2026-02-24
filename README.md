@@ -1,62 +1,61 @@
-# shikimori-ml
+# shikimori-parse
 
 <div id="stack badges">
-    <a href="https://docs.python.org/3/index.html">
-        <img src="https://img.shields.io/badge/python-61ca9a?style=for-the-badge&logo=python&logoColor=white" alt="skimage badge"/>
-    </a>
-    <a href="https://gql.readthedocs.io/en/latest/intro.html">
-        <img src="https://img.shields.io/badge/GraphQL-CB2C31?style=for-the-badge&logoColor=white" alt="pytorch badge"/>
-    </a>
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/-Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  </a>
+  <a href="https://pypi.org/project/gql/">
+    <img src="https://img.shields.io/badge/-gql-E535AB?style=for-the-badge&logo=graphql&logoColor=white" alt="gql"/>
+  </a>
+  <a href="https://uv.io/">
+    <img src="https://img.shields.io/badge/-uv-F0DB4F?style=for-the-badge&logo=uv&logoColor=black" alt="uv"/>
+  </a>
 </div>
 
-pet-project with [shikimori](https://shikimori.one/) data 
+CLI tool to parse [Shikimori](https://shikimori.io/) data.
+Parsing works with GraphQL API and OAuth2. You can find parsing script [here](src/shikimori_parse/cli.py) and [shikimori](./src/shikimori_parse/client.py) API client here.
 
-## Parse Data
-Parsing works with GraphQL API and OAuth2. You can find parsing script [here](shikimori/parse/parse.py) and [shikimori](shikimori/graphql/graphql_client.py) API client here.
-In order to parse data from Shikimori with default configuration, you need:
+You can fine usage examples with CLI or package API [here](./examples). 
 
-- Get your access_token by this [guide](https://shikimori.one/oauth?oauth_application_id=15&authorization_code=32yz1tIvXUoxxbFBai_IsF9-QHb4aTXE-fYrrUu9MgE#step_2) and write in [`.env`](.env) file
-- Replace [GraphQL query request](shikimori/parse/query.txt) with your one. You can test your query firstly in [shikimori playground](https://shikimori.one/api/doc/graphql)
-- Use this command and check the result in [`response.json`](shikimori/parse/response.json)
+## Setup
 
-   ```sh
-    python3 -m shikimori.parse.parse
+1. Copy your access token, OAuth2 client id and client secret into `.env` following 
+[this guide](https://shikimori.one/oauth?oauth_application_id=15&authorization_code=32yz1tIvXUoxxbFBai_IsF9-QHb4aTXE-fYrrUu9MgE#step_2) (see. [`.env.example`](./.env.example))
+1. Install project CLI:
+
+    ```sh
+    uv pip install -e .
+    export PATH="$PWD/.venv/bin:$PATH"
     ```
-   Example logs:
-   ```sh
-   2025-01-21 23:53:23,562 - INFO - GraphQL client is ready!
-   2025-01-21 23:53:23,562 - INFO - Query is loaded!
-   2025-01-21 23:53:24,613 - INFO - Page 1 fetched successfully.
-   2025-01-21 23:53:25,027 - INFO - Page 2 fetched successfully.
-   ...
-   2025-01-21 23:54:56,316 - INFO - Page 149 fetched successfully.
-   2025-01-21 23:54:56,664 - ERROR - Error while fetching page 150: 429, message='Too Many Requests', url='https://shikimori.one/api/graphql'
-   2025-01-21 23:54:56,664 - INFO - Execution completed in 93.10 seconds
-   2025-01-21 23:54:56,664 - INFO - You have parsed 7450 entities.
-   ```
-   
-See in more details command help, if you want to configure the script in another way
-```sh
-python3 -m shikimori.parse.parse -h
+1. Prepare your GraphQL queries in `input/` dir (`.gql` files). You can test them first in the [Shikimori GraphQL Playground](https://shikimori.io/api/doc/graphql)
+1. Run CLI:
+    ```sh
+    shiki-parse --help
 
-usage: parse.py [-h] [--auth_code AUTH_CODE] [--access_token ACCESS_TOKEN] [--refresh_token REFRESH_TOKEN] [--endpoint ENDPOINT] [--refresh_if_expired] [--query_file QUERY_FILE] [--response_file RESPONSE_FILE] [--max-pages MAX_PAGES]
+    usage: shiki-parse [-h] [--client_id CLIENT_ID] [--client_secret CLIENT_SECRET] [--auth_code AUTH_CODE] [--access_token ACCESS_TOKEN] [--refresh_token REFRESH_TOKEN] [--endpoint ENDPOINT] [--refresh_if_expired]
+                      [--output-format {json,csv}] [--input INPUT] [--output OUTPUT] [--max-pages MAX_PAGES] [--timeout TIMEOUT]
 
-Shikimori GraphQL CLI client.
+    Shikimori GraphQL CLI client.
 
-options:
-  -h, --help            show this help message and exit
-  --auth_code AUTH_CODE
-                        Authorization code for initial access token generation. By default trying to get from .env file
-  --access_token ACCESS_TOKEN
-                        Access token for API access. By default trying to get from .env file
-  --refresh_token REFRESH_TOKEN
-                        Refresh token for obtaining a new access token. By default trying to get from .env file
-  --endpoint ENDPOINT   GraphQL endpoint URL. By default trying to get from .env file
-  --refresh_if_expired  Set this flag to automatically refresh token if expired.
-  --query_file QUERY_FILE
-                        Path to the file containing the GraphQL query. By default is shikiromir/parse/query.txt
-  --response_file RESPONSE_FILE
-                        Path to the file containing the response. By default is shikimori/parse/response.json
-  --max-pages MAX_PAGES
-                        Max number of pages to be parsed. Each page limit is about 50 entities. By default is int(10_000/50)
-```
+    options:
+      -h, --help            show this help message and exit
+      --client_id CLIENT_ID
+                            OAuth client ID. By default trying to get from .env file SHIKI_CLIENT_ID
+      --client_secret CLIENT_SECRET
+                            OAuth client secret. By default trying to get from .env file SHIKI_CLIENT_SECRET
+      --auth_code AUTH_CODE
+                            Authorization code for initial access token generation. By default trying to get from .env file SHIKI_AUTH_CODE
+      --access_token ACCESS_TOKEN
+                            Access token for API access. By default trying to get from .env file SHIKI_ACCESS_TOKEN
+      --refresh_token REFRESH_TOKEN
+                            Refresh token for obtaining a new access token. By default trying to get from .env file SHIKI_REFRESH_TOKEN
+      --endpoint ENDPOINT   Shikimori base endpoint. By default trying to get from .env file SHIKI_BASE_HOST
+      --refresh_if_expired  Set this flag to automatically refresh token if expired.
+      --output-format {json,csv}
+                            Choose output parsed data format
+      --input INPUT         Path to a GraphQL query file (.gql) or a directory with queries. By default is `./input`
+      --output OUTPUT       Path to the output with parsed results. By default is `./output`
+      --max-pages MAX_PAGES
+                            Max number of pages to be parsed. Each page limit is about 50 entities. By default is 1
+      --timeout TIMEOUT     Timeout between GraphQL requests.
+    ```
